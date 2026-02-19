@@ -374,29 +374,50 @@
     },
 
     // Speciály (ponechané)
-    {
-      type: "special",
-      date: "2025-12-17",
-      title: "Infoservis speciál: Novela školského zákona z pohledu soukromých a církevních škol",
-      url: "https://edu.gov.cz/infoservis-special-novela-skolskeho-zakona-z-pohledu-soukromych-a-cirkevnich-skol/",
-      videoId: "Ta7br5uv0JU",
-      anno: "Přehled dopadů novely školského zákona – soukromé a církevní školy.",
-      guests: [
-        "Jan Mareš, vrchní ředitel sekce vzdělávání a mládeže, MŠMT",
-        "Martina Běťáková, ředitelka odboru podpory škol a zřizovatelů, MŠMT"
-      ],
-      chapters: [
-        { t:"0:00:00", s:0, label:"Stručný přehled témat" },
-        { t:"0:00:39", s:39, label:"Změny ve financování soukromých a církevních ZŠ" },
-        { t:"0:06:58", s:418, label:"Školská právnická osoba" },
-        { t:"0:10:03", s:603, label:"Řízení škol a školských zařízení" },
-        { t:"0:21:02", s:1262, label:"Pedagogičtí pracovníci" },
-        { t:"0:26:45", s:1605, label:"Střední a vyšší odborné školy" },
-        { t:"0:28:53", s:1733, label:"Odkladová novela" }
-      ],
-      attachments: [
-        { label:"Přílohy (na stránce)", url:"https://edu.gov.cz/infoservis-special-novela-skolskeho-zakona-z-pohledu-soukromych-a-cirkevnich-skol/" }
-      ]
+{
+  type: "special",
+  date: "2025-12-17",
+  title: "Infoservis speciál: Novela školského zákona z pohledu soukromých a církevních škol",
+  url: "https://edu.gov.cz/infoservis-special-novela-skolskeho-zakona-z-pohledu-soukromych-a-cirkevnich-skol/",
+  videoId: "Ta7br5uv0JU",
+  anno: "Videozáznam k novele školského zákona z pohledu soukromých a církevních škol (k dispozici od 17. 12. 2025, 16:00).",
+  guests: [
+    "Jan Mareš, vrchní ředitel sekce vzdělávání a mládeže, MŠMT",
+    "Martina Běťáková, ředitelka odboru podpory škol a zřizovatelů, MŠMT"
+  ],
+  chapters: [
+    { t:"0:00:00", s:0, label:"Stručný přehled témat" },
+
+    { t:"0:00:39", s:39, label:"Změny ve financování soukromých a církevních ZŠ", children: [
+      { label:"Poradenské pozice (psycholog, speciální pedagog, sociální pedagog)" },
+      { label:"Celostátní normativy pro ŠPZ" },
+      { label:"Prominutí zmeškání lhůty u žádosti o dotaci" }
+    ]},
+
+    { t:"0:06:58", s:418, label:"Školská právnická osoba" },
+
+    { t:"0:10:03", s:603, label:"Řízení škol a školských zařízení", children: [
+      { label:"Školské rady" },
+      { label:"Výchovná opatření, podmíněné vyloučení a vyloučení" },
+      { label:"Změny v povinnosti převodu slovního hodnocení" },
+      { label:"Zveřejňování způsobem umožňujícím dálkový přístup" },
+      { label:"Zrušení dokládání stanoviska KHS" }
+    ]},
+
+    { t:"0:21:02", s:1262, label:"Pedagogičtí pracovníci", children: [
+      { label:"Asistent pedagoga v 1. třídě" },
+      { label:"Podpůrné opatření „další učitel“" },
+      { label:"Zrušení povinné pětileté praxe" },
+      { label:"Požadavky na jazykovou úroveň pedagogických pracovníků" }
+    ]},
+
+    { t:"0:26:45", s:1605, label:"Střední a vyšší odborné školy" },
+    { t:"0:28:53", s:1733, label:"Odkladová novela" }
+  ],
+  attachments: [
+    { label:"Prezentace / přílohy (stránka infoservisu)", url:"https://edu.gov.cz/infoservis-special-novela-skolskeho-zakona-z-pohledu-soukromych-a-cirkevnich-skol/" },
+    { label:"Velká novela v kostce pro soukromé a církevní školy (DOCX)", url:"https://edu.gov.cz/wp-content/uploads/2025/11/Velka-novela-v-kostce-pro-soukrome-a-cirkevni-skoly.docx" }
+  ]
     },
     {
       type: "special",
