@@ -539,15 +539,25 @@
     });
   }
 
-  function matches(item, q){
-    if(!q) return true;
-    const hay = [
-      item.title, item.anno,
-      ...(item.guests||[]),
-      ...((item.chapters||[]).map(c=>c.label))
-    ].join(" ");
-    return norm(hay).includes(norm(q));
-  }
+  function chapterTextFlat(ch){
+  const self = ch.label || "";
+  const kids = (ch.children || []).map(chapterTextFlat).join(" ");
+  return (self + " " + kids).trim();
+}
+
+function matches(item, q){
+  if(!q) return true;
+
+  const chText = (item.chapters || []).map(chapterTextFlat).join(" ");
+
+  const hay = [
+    item.title, item.anno,
+    ...(item.guests||[]),
+    chText
+  ].join(" ");
+
+  return norm(hay).includes(norm(q));
+}
 
   function renderItem(it){
     const d = fmtDate(it.date);
@@ -560,13 +570,25 @@
       ? `<h3>Hosté</h3><ul>${it.guests.map(g=>`<li>${escapeHtml(g)}</li>`).join("")}</ul>`
       : "";
 
-    const chapters = (it.chapters && it.chapters.length)
-      ? `<h3>Obsah</h3><ul>${
-          it.chapters.map(c=>(
-            `<li><a class="ts" href="#" data-start="${c.s}">${escapeHtml(c.t)}</a> ${escapeHtml(c.label)}</li>`
-          )).join("")
-        }</ul>`
-      : "";
+function renderChaptersTree(chs){
+  return `<ul>${
+    chs.map(c=>{
+      const head = (typeof c.s === "number" && c.t)
+        ? `<a class="ts" href="#" data-start="${c.s}">${escapeHtml(c.t)}</a> ${escapeHtml(c.label)}`
+        : `${escapeHtml(c.label)}`;
+
+      const kids = (c.children && c.children.length)
+        ? renderChaptersTree(c.children)
+        : "";
+
+      return `<li>${head}${kids}</li>`;
+    }).join("")
+  }</ul>`;
+}
+
+const chapters = (it.chapters && it.chapters.length)
+  ? `<h3>Obsah</h3>${renderChaptersTree(it.chapters)}`
+  : "";
 
     const attachments = (it.attachments && it.attachments.length)
       ? `<h3>Přílohy</h3><ul>${
