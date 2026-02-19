@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Infoservisy – demo (hledání + filtry + stránkování)</title>
+
+<style>
+  :root{
+    --blue:#0b3a7e;
+    --border:#e6e6e6;
+    --muted:#444;
+    --bgsoft:#f5f8fb;
+  }
+  body{ margin:0; background:#fff; }
+  .wrap{
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 16px;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  h1{ margin: 0 0 8px 0; font-size: 28px; }
+  .lead{ margin:0 0 14px 0; color: var(--muted); }
+
+  /* === Controls layout (podle přílohy) === */
+  .controls{
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+    display: grid;
+    gap: 12px;
+    margin: 14px 0 16px;
+  }
+
+  .field label{
+    display:block;
+    font-size: 13px;
+    font-weight: 600;
+    color:#222;
+    margin:0 0 6px 0;
+  }
+  input[type="search"]{
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d7d7d7;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+
+  /* Segmented filter (Vše / Infoservis / Infoservis speciál) */
+  .seg{
+    display:inline-flex;
+    border:1px solid #d7d7d7;
+    border-radius: 12px;
+    overflow:hidden;
+    background:#fff;
+    width: fit-content;
+  }
+  .seg button{
+    appearance:none;
+    border:0;
+    background:transparent;
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor:pointer;
+    color:#111;
+  }
+  .seg button + button{ border-left:1px solid #e7e7e7; }
+  .seg button.is-active{
+    background: var(--blue);
+    color:#fff;
+  }
+
+  .quicklinks{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top: 2px;
+  }
+  .a-quiet{
+    font-size: 13px;
+    color: var(--blue);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor:pointer;
+  }
+
+	/* Plánované */
+  .planned{
+    background: var(--bgsoft);
+    border: 1px solid #e1e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 0 0 16px;
+  }
+  .planned h2{ margin: 0 0 8px 0; font-size: 16px; }
+  .planned ul{ margin:0; padding-left:18px; }
+
+  /* Výpis */
+  .meta-bar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    margin: 10px 0 10px;
+    color:#333;
+    font-size: 13px;
+  }
+
+  details.item{
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    background:#fff;
+    margin: 10px 0;
+  }
+  details.item[open]{
+    border-color: #cfd8e3;
+    box-shadow: 0 1px 10px rgba(0,0,0,.04);
+  }
+  details.item summary{
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  details.item summary::-webkit-details-marker{ display:none; }
+  .title{ font-weight: 800; font-size: 16px; color: var(--blue); }
+  .submeta{ font-size: 13px; color: var(--muted); }
+  .anno{ font-size: 13px; color:#333; }
+
+  .tag{
+    display:inline-block;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background:#eef4ff;
+    color: var(--blue);
+    border: 1px solid #d6e6ff;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+
+  .detail{
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #e0e0e0;
+  }
+  .detail h3{ margin: 10px 0 6px 0; font-size: 14px; }
+  .detail ul{ margin:0 0 10px 0; padding-left: 18px; }
+
+  /* klikací čas */
+  a.ts{
+    font-weight: 800;
+    color: var(--blue);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  a.ts:hover{ opacity:.85; }
+
+  /* video dole */
+  .video-wrap{ margin: 10px 0 0 0; }
+  .video-aspect{
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background:#000;
+  }
+  .video-aspect iframe{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    border:0;
+  }
+  .no-video{
+    background: var(--bgsoft);
+    border:1px solid #e1e8f0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color:#222;
+  }
+
+  .cta-row{
+    margin-top: 8px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    display:inline-block;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #d7d7d7;
+    text-decoration:none;
+    color:#111;
+    font-size: 13px;
+    background:#fff;
+    cursor:pointer;
+  }
+  .btn-primary{
+    border-color: var(--blue);
+    background: var(--blue);
+    color:#fff;
+  }
+
+  /* stránkování */
+  .pager{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-start;
+    margin: 14px 0 20px;
+  }
+  .pager button{
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #d7d7d7;
+    background:#fff;
+    cursor:pointer;
+    font-size: 13px;
+  }
+  .pager button[disabled]{ opacity:.5; cursor:not-allowed; }
+  .pagepill{
+    font-size: 13px;
+    color:#333;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border:1px solid #eee;
+    background:#fafafa;
+  }
+	
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>Infoservisy</h1>
+  <p class="lead">
+    Vyhledejte díl Infoservisu podle názvu, hostů nebo témat v obsahu. Můžete si zobrazit všechny vydané díly, měsíční nebo speciální infoservisy na dané téma.
+  </p>
+
+  <div class="planned">
+    <h2>Plánované díly (z Infoservisy)</h2>
+    <ul>
+      <li><strong>Další vydání Infoservisu</strong>: Pondělí 2.3.2026 | 16:00 • Úterý 7.4.2026 | 16:00 • Pondělí 4.5.2026 | 16:00 • Pondělí 1.6.2026 | 16:00</li>
+      <li><strong>Plánovaná témata Infoservisu speciál</strong>: 19.02.2026 | 16:00 – Infoservis speciál: Sociální pedagog</li>
+    </ul>
+  </div>
+
+  <div class="controls">
+    <div class="field">
+      <label for="q">Hledat (název / hosté / obsah)</label>
+      <input id="q" type="search" placeholder="např. wellbeing, sociální pedagog, Večerková…" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label>Filtrovat podle typu</label>
+      <div class="seg" role="tablist" aria-label="Filtrovat podle typu">
+        <button type="button" class="js-type is-active" data-type="all" role="tab" aria-selected="true">Vše</button>
+        <button type="button" class="js-type" data-type="infoservis" role="tab" aria-selected="false">Infoservis</button>
+        <button type="button" class="js-type" data-type="special" role="tab" aria-selected="false">Infoservis speciál</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta-bar">
+    <div id="count">Načítám…</div>
+    <div id="hint">Tip: klikni na čas a video skočí na kapitolu.</div>
+  </div>
+
+  <div id="list"></div>
+  <div class="pager" id="pager" aria-label="Stránkování"></div>
+</div>
+
+<script>
+(function(){
+  // ====== helper: vytvoř infoservis položku jen z URL (bez videa/kapitol) ======
+  function mkInfoservis(url){
+    // očekávaný formát: /infoservis-13-01-2025/ nebo /infoservis-28-8-2023/
+    const m = url.match(/infoservis-(\d{1,2})-(\d{1,2})-(\d{4})\/?$/i);
+    if(!m){
+      return {
+        type: "infoservis",
+        date: "0000-00-00",
+        title: "Infoservis (datum neparsováno)",
+        url,
+        videoId: "",
+        anno: "Pravidelný infoservis – detail viz odkaz.",
+        guests: [],
+        chapters: [],
+        attachments: []
+      };
+    }
+    const dd = String(m[1]).padStart(2,"0");
+    const mm = String(m[2]).padStart(2,"0");
+    const yyyy = m[3];
+    return {
+      type: "infoservis",
+      date: `${yyyy}-${mm}-${dd}`,
+      title: `Infoservis ${dd}. ${mm}. ${yyyy}`,
+      url,
+      videoId: "",
+      anno: "Pravidelný infoservis – detail viz odkaz.",
+      guests: [],
+      chapters: [],
+      attachments: []
+    };
+  }
+
+  // ====== DATA ======
+  const ITEMS = [
+    // (ponechané / doplněné novější kusy – jak už jsme měli)
+    {
+      type: "infoservis",
+      date: "2026-02-02",
+      title: "Infoservis 02. 02. 2026",
+      url: "https://edu.gov.cz/infoservis-02-02-2026/",
+
+      videoId: "4xqFEWA1SX0",
+      anno: "Stručný přehled legislativních novinek a aktuálních informací ve školním roce 2025/2026.",
+      guests: [
+        "Barbora Večerková, vedoucí oddělení národních analýz",
+        "Petr Polívka, koordinátor skupiny IT Guru"
+      ],
+      chapters: [
+        { t:"0:00:00", s:0, label:"Stručný přehled témat" },
+        { t:"0:00:24", s:24, label:"Robert Plaga, ministr školství, mládeže a tělovýchovy" },
+        { t:"0:01:19", s:79, label:"Normativy neinvestičních výdajů pro neveřejné školství" },
+        { t:"0:01:45", s:105, label:"Vykazování absencí v mateřských školách" },
+        { t:"0:02:36", s:156, label:"Zápisy do 1. tříd základních škol a odklady" },
+        { t:"0:03:42", s:222, label:"Přihlašování k přijímacím zkouškám na střední školy" },
+        { t:"0:04:30", s:270, label:"Ohlášení plnění povinného podílu OZP" },
+        { t:"0:05:10", s:310, label:"Sociální pedagog" },
+        { t:"0:06:08", s:368, label:"Šetření wellbeingu žáků 2. stupně ZŠ a SŠ" },
+        { t:"0:17:37", s:1057, label:"IT Guru jako součást Středního článku podpory" }
+      ],
+      attachments: [
+        { label:"Prezentace / přílohy (na stránce)", url:"https://edu.gov.cz/infoservis-02-02-2026/" }
+      ]
+    },
+    {
+      type: "infoservis",
+      date: "2026-01-12",
+      title: "Infoservis 12. 01. 2026",
+      url: "https://edu.gov.cz/infoservis-12-01-2026/",
+      videoId: "owJCwEpcXiE",
+      anno: "Pravidelný infoservis – přehled důležitých informací pro školy.",
+      guests: [
+        "Lenka Cahová, ředitelka odboru financování regionálního školství",
+        "Jan Jindra, metodik pro digitalizaci nepedagogických agend",
+        "Tereza Halouzková, projektová manažerka, NPI"
+      ],
+      chapters: [
+        { t:"0:00:00", s:0, label:"Stručný přehled témat" },
+        { t:"0:02:10", s:130, label:"Rozpočtové provizorium a praktický dopad na školy" },
+        { t:"0:31:17", s:1877, label:"Shrnutí novely školského zákona účinných od 1. 1. 2026" },
+        { t:"0:38:37", s:2317, label:"Střední článek podpory v roce 2025" },
+        { t:"0:39:51", s:2391, label:"Digitalizace nepedagogických agend" },
+        { t:"0:46:03", s:2763, label:"Šetření wellbeingu žáků 2. stupně ZŠ a SŠ" },
+        { t:"0:47:52", s:2872, label:"NPI – publikace ke slučování škol" }
+      ],
+      attachments: [
+        { label:"Prezentace / přílohy (na stránce)", url:"https://edu.gov.cz/infoservis-12-01-2026/" }
+      ]
+    },
+
+    // Speciály (ponechané)
+    {
+      type: "special",
+      date: "2025-12-17",
+      title: "Infoservis speciál: Novela školského zákona z pohledu soukromých a církevních škol",
+      url: "https://edu.gov.cz/infoservis-special-novela-skolskeho-zakona-z-pohledu-soukromych-a-cirkevnich-skol/",
+      videoId: "Ta7br5uv0JU",
+      anno: "Přehled dopadů novely školského zákona – soukromé a církevní školy.",
+      guests: [
+        "Jan Mareš, vrchní ředitel sekce vzdělávání a mládeže, MŠMT",
+        "Martina Běťáková, ředitelka odboru podpory škol a zřizovatelů, MŠMT"
+      ],
+      chapters: [
+        { t:"0:00:00", s:0, label:"Stručný přehled témat" },
+        { t:"0:00:39", s:39, label:"Změny ve financování soukromých a církevních ZŠ" },
+        { t:"0:06:58", s:418, label:"Školská právnická osoba" },
+        { t:"0:10:03", s:603, label:"Řízení škol a školských zařízení" },
+        { t:"0:21:02", s:1262, label:"Pedagogičtí pracovníci" },
+        { t:"0:26:45", s:1605, label:"Střední a vyšší odborné školy" },
+        { t:"0:28:53", s:1733, label:"Odkladová novela" }
+      ],
+      attachments: [
+        { label:"Přílohy (na stránce)", url:"https://edu.gov.cz/infoservis-special-novela-skolskeho-zakona-z-pohledu-soukromych-a-cirkevnich-skol/" }
+      ]
+    },
+    {
+      type: "special",
+      date: "2025-12-09",
+      title: "Infoservis speciál: Financování školního stravování",
+      url: "https://edu.gov.cz/infoservis-special-financovani-skolniho-stravovani/",
+      videoId: "WwCSQULJR6g",
+      anno: "Tematický díl k financování školního stravování – co je důležité vědět v praxi.",
+      guests: [
+        "Pavel Křeček, vrchní ředitel sekce ekonomické a legislativní",
+        "Eva Vondráčková, specialistka na veřejné zakázky"
+      ],
+      chapters: [
+        { t:"0:00:00", s:0, label:"Stručný přehled témat" },
+        { t:"0:00:52", s:52, label:"Legislativní změny a jejich dopad na školní stravování" },
+        { t:"0:15:43", s:943, label:"Veřejné zakázky a smluvní vztahy" },
+        { t:"0:28:47", s:1727, label:"Financování školního stravování u soukromých a církevních škol" }
+      ],
+      attachments: [
+        { label:"Přílohy (na stránce)", url:"https://edu.gov.cz/infoservis-special-financovani-skolniho-stravovani/" }
+      ]
+    },
+    {
+      type: "special",
+      date: "2025-10-30",
+      title: "Infoservis speciál: Podpůrné pozice",
+      url: "https://edu.gov.cz/infoservis-special-podpurne-pozice/",
+      videoId: "Fz0dSPhu9Xw",
+      anno: "Speciál k institucionálnímu ukotvení podpůrných pedagogických pozic.",
+      guests: [],
+      chapters: [],
+      attachments: []
+    },
+
+    // ====== NOVĚ DOPLNĚNÉ: „všechny infoservisy“ 2023–2025 ======
+    mkInfoservis("https://edu.gov.cz/infoservis-13-01-2025/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-2-12-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-4-11-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-7-10-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-2-9-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-3-6-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-6-5-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-2-4-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-4-3-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-5-2-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-8-1-2024/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-4-12-2023/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-6-11-2023/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-2-10-2023/"),
+    mkInfoservis("https://edu.gov.cz/infoservis-28-8-2023/")
+  ];
+
+  // ====== UI ======
+  const qEl = document.getElementById("q");
+  const listEl = document.getElementById("list");
+  const countEl = document.getElementById("count");
+  const pagerEl = document.getElementById("pager");
+  const typeBtns = Array.from(document.querySelectorAll(".js-type"));
+  const PAGE_SIZE = 10;
+
+  function norm(s){
+    return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  }
+  function dateKey(iso){
+    if(!iso || iso.includes("??")) return "0000-00-00";
+    return iso;
+  }
+  function fmtType(t){
+    return t==="special" ? "speciál" : "infoservis";
+  }
+  function fmtDate(iso){
+    if(!iso || iso.includes("??") || iso==="0000-00-00") return "";
+    const [y,m,d]=iso.split("-");
+    return `${d}. ${m}. ${y}`;
+  }
+  function escapeHtml(str){
+    return (str||"").replace(/[&<>"']/g, s => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[s]));
+  }
+  function escapeAttr(str){
+    return escapeHtml(str).replace(/`/g,"&#096;");
+  }
+
+  function readParams(){
+    const sp = new URLSearchParams(window.location.search);
+    const type = sp.get("type") || "all"; // all | infoservis | special
+    const q = sp.get("q") || "";
+    const page = parseInt(sp.get("p") || "1", 10);
+    return { type, q, page: isFinite(page) && page>0 ? page : 1 };
+  }
+  function writeParams(next){
+    const sp = new URLSearchParams(window.location.search);
+
+    if(next.type){
+      if(next.type === "all") sp.delete("type");
+      else sp.set("type", next.type);
+    }
+    if(typeof next.q === "string"){
+      if(next.q.trim()) sp.set("q", next.q.trim());
+      else sp.delete("q");
+    }
+    if(next.p){
+      if(next.p === 1) sp.delete("p");
+      else sp.set("p", String(next.p));
+    }
+
+    const qs = sp.toString();
+    const url = window.location.pathname + (qs ? "?" + qs : "");
+    window.history.replaceState({}, "", url);
+
+  }
+
+  function setActiveType(type){
+    typeBtns.forEach(b=>{
+      const active = b.dataset.type === type;
+      b.classList.toggle("is-active", active);
+      b.setAttribute("aria-selected", active ? "true" : "false");
+    });
+  }
+
+  function matches(item, q){
+    if(!q) return true;
+    const hay = [
+      item.title, item.anno,
+      ...(item.guests||[]),
+      ...((item.chapters||[]).map(c=>c.label))
+    ].join(" ");
+    return norm(hay).includes(norm(q));
+  }
+
+  function renderItem(it){
+    const d = fmtDate(it.date);
+    const meta = [
+      d ? d : "datum neuvedeno",
+      `<span class="tag">${escapeHtml(fmtType(it.type))}</span>`
+    ].join(" • ");
+
+    const guests = (it.guests && it.guests.length)
+      ? `<h3>Hosté</h3><ul>${it.guests.map(g=>`<li>${escapeHtml(g)}</li>`).join("")}</ul>`
+      : "";
+
+    const chapters = (it.chapters && it.chapters.length)
+      ? `<h3>Obsah</h3><ul>${
+          it.chapters.map(c=>(
+            `<li><a class="ts" href="#" data-start="${c.s}">${escapeHtml(c.t)}</a> ${escapeHtml(c.label)}</li>`
+          )).join("")
+        }</ul>`
+      : "";
+
+    const attachments = (it.attachments && it.attachments.length)
+      ? `<h3>Přílohy</h3><ul>${
+          it.attachments.map(a=>(
+            `<li><a href="${escapeAttr(a.url)}">${escapeHtml(a.label)}</a></li>`
+          )).join("")
+        }</ul>`
+      : "";
+
+    const videoBlock = it.videoId
+      ? `
+        <div class="video-wrap">
+          <div class="video-aspect">
+            <iframe class="yt-iframe"
+              title="${escapeAttr(it.title)}"
+              src="https://www.youtube.com/embed/${encodeURIComponent(it.videoId)}?rel=0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+          </div>
+        </div>`
+      : `<div class="no-video">Video není v demu doplněné. Pro plný obsah použijte „Otevřít detail záznamu“.</div>`;
+
+    return `
+      <details class="item" data-video-id="${escapeAttr(it.videoId || "")}">
+        <summary>
+          <span class="title">${escapeHtml(it.title)}</span>
+          <span class="submeta">${meta}</span>
+          <span class="anno">${escapeHtml(it.anno || "")}</span>
+        </summary>
+
+        <div class="detail">
+          ${guests}
+          ${chapters}
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="${escapeAttr(it.url)}">Otevřít detail záznamu</a>
+            ${it.videoId ? `<a class="btn js-play" href="#" data-start="0">▶ Přehrát od začátku</a>` : ``}
+          </div>
+
+          ${attachments}
+          ${videoBlock}
+        </div>
+      </details>
+    `;
+  }
+
+  function renderPager(page, totalPages){
+    const prevDisabled = page<=1;
+    const nextDisabled = page>=totalPages;
+
+    pagerEl.innerHTML = `
+      <button type="button" class="js-prev" ${prevDisabled ? "disabled" : ""}>← Předchozí</button>
+      <span class="pagepill">Stránka ${page} z ${totalPages}</span>
+      <button type="button" class="js-next" ${nextDisabled ? "disabled" : ""}>Další →</button>
+    `;
+
+    pagerEl.querySelector(".js-prev").addEventListener("click", function(){
+      const st = readParams();
+      writeParams({ p: Math.max(1, st.page-1) });
+      apply();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    pagerEl.querySelector(".js-next").addEventListener("click", function(){
+      const st = readParams();
+      writeParams({ p: st.page+1 });
+      apply();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  function wireVideoJumps(){
+    document.querySelectorAll("a.ts, a.js-play").forEach(a=>{
+      a.addEventListener("click", function(e){
+        e.preventDefault();
+        const seconds = parseInt(this.getAttribute("data-start") || "0", 10) || 0;
+        const item = this.closest("details.item");
+        if(!item) return;
+        item.open = true;
+
+        const videoId = item.getAttribute("data-video-id");
+        const iframe = item.querySelector("iframe.yt-iframe");
+        if(!videoId || !iframe) return;
+
+        iframe.src = "https://www.youtube.com/embed/" + encodeURIComponent(videoId) +
+          "?start=" + seconds + "&autoplay=1&rel=0";
+
+        const wrap = item.querySelector(".video-wrap");
+        if(wrap) wrap.scrollIntoView({ behavior:"smooth", block:"start" });
+      });
+    });
+  }
+
+  function apply(){
+    const st = readParams();
+    qEl.value = st.q;
+    setActiveType(st.type);
+
+    const sorted = ITEMS.slice().sort((a,b)=> dateKey(b.date).localeCompare(dateKey(a.date)));
+
+    const filtered = sorted.filter(it=>{
+      if(st.type==="infoservis" && it.type!=="infoservis") return false;
+      if(st.type==="special" && it.type!=="special") return false;
+      return matches(it, st.q);
+    });
+
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const page = Math.min(st.page, totalPages);
+    if(page !== st.page) writeParams({ p: page });
+
+    const start = (page-1)*PAGE_SIZE;
+    const pageItems = filtered.slice(start, start + PAGE_SIZE);
+
+    countEl.textContent = `${total} položek • stránka ${page} / ${totalPages}`;
+    listEl.innerHTML = pageItems.map(renderItem).join("");
+    renderPager(page, totalPages);
+    wireVideoJumps();
+  }
+
+  // Type buttons
+  typeBtns.forEach(btn=>{
+    btn.addEventListener("click", function(){
+      const type = this.dataset.type;
+      writeParams({ type, p: 1 });
+      apply();
+    });
+  });
+
+  // Search input (debounce)
+  let t=null;
+  qEl.addEventListener("input", function(){
+    clearTimeout(t);
+    t=setTimeout(()=>{
+      writeParams({ q: qEl.value, p: 1 });
+      apply();
+    }, 150);
+  });
+
+
+  // Init
+  apply();
+})();
+</script>
+</body>
+</html>
